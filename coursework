@@ -30,8 +30,8 @@ def qr_decomp(A):
     # Get dimension of matrix.
     n = len(A)
     cp = A.copy()
-    Q = np.zeros(shape=(n,n))
-    R = np.zeros(shape=(n,n))
+    Q = np.zeros(shape=(n, n))
+    R = np.zeros(shape=(n, n))
 
     for i in range(n):
         u = A[:, i]
@@ -44,6 +44,23 @@ def qr_decomp(A):
     return Q, R
 
 
+def qr_iterator(A):
+    trace = A.trace()
+    print('A is \n {}\n'.format(A))
+    a = []
+    q_0, r_0 = qr_decomp(A)
+    a.append(np.array(np.matrix(r_0) * np.matrix(q_0)))
+    for i in range(100):
+        q, r = qr_decomp(a.pop())
+        q_0 = np.matrix(q_0) * np.matrix(q)
+        m = np.array(np.matrix(r) * np.matrix(q))
+        m_t = m.trace()
+        print('{} is the difference between traces'.format(trace - m_t))
+        a.append(m)
+    print('So we have \n{}\n{}\n'.format(a.pop(), q_0))
+
+
+
 # -----------------------------------------------------------
 # THE MAIN METHOD.
 # -----------------------------------------------------------
@@ -51,18 +68,20 @@ def qr_decomp(A):
 
 def main():
     # Get input from the user.
+    #np.set_printoptions(suppress=True)
     n = int(input("Please enter the size of the matrix you would like to generate.\n"))
     # Generate random matrix of correct dimensions
-    #print('Generating a random symmetric matrix of size {} x {}\n'.format(n, n))
+    # print('Generating a random symmetric matrix of size {} x {}\n'.format(n, n))
     b = np.random.random_integers(-100, 100, size=(n, n))
     # Make a symmetric matrix out of the generated matrix.
     A = (b + b.T) / 2
-    # Run Gram Schmidt on the matrix.
-    Q, R = qr_decomp(A)
-
-    print('The obtained Q was:\n {}\n'.format(Q))
-    print('The obtained R was:\n {}\n'.format(R))
-
+    trace = A.trace()
+    print('Trace is {}'.format(trace))
+    qr_iterator(A)
+    file = open("results.txt", "w")
+    file.write("The generated symmetric matrix was \n{}\n \
+                and using QR decomposition we can find \
+                 the eigenvectors".format(A) )
 
 if __name__ == "__main__":
     main()

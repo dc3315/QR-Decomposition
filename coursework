@@ -4,43 +4,65 @@ from numpy import linalg as LA
 import numpy as np
 
 
+# -----------------------------------------------------------
+# HELPER FUNCTIONS
+# -----------------------------------------------------------
+
 def normalize(v):
-  return v / LA.norm(v)
+    norm = LA.norm(v)
+    if norm == 0:
+        return v
+    return v / norm
+
 
 def proj(u, w):
-  return (np.vdot(u, w) / (LA.norm(w))** 2) * w
+    return (np.vdot(u, w) / (LA.norm(w)) ** 2) * w
 
 
-def gram_schmidt(A):
-  m, n = np.shape(A)
-  Q = np.zeros(shape=(m, n))
-  Q[:, 0] = normalize(A[:, 0])
-  for i in range(1, n, 1):
-    # Get correct column
-    u = A[:, i]
-    # Create a copy of u
-    w = u
-    # Substract projections
-    for k in range(0, i, 1):
-      u -= proj(w, Q[:, k]) 
-    # Normalize
-    Q[:, i] = normalize(u)
-  return Q       
+# -----------------------------------------------------------
+# QR DECOMPOSITION ALGORITHM USING GRAM SCHMIDT METHOD.
+# The algorithm performs a gram schmidt decomposition on
+# the matrix and concurrently calculates R.
+# -----------------------------------------------------------
 
 
-# Get input from the user.
-m, n = [int(x) for x in 
-        raw_input("Please enter m and n, separated by whitespace:\n").split()]
+def qr_decomp(A):
+    # Get dimension of matrix.
+    n = len(A)
+    cp = A.copy()
+    Q = np.zeros(shape=(n,n))
+    R = np.zeros(shape=(n,n))
 
-# Generate random matrix of correct dimensions
-A = np.random.uniform(-100, 100, (m, n))
-print '{}'.format(A)
-print '{}'.format(gram_schmidt(A))
-q, r = LA.qr(A)
-print '{}'.format(q)
+    for i in range(n):
+        u = A[:, i]
+        w = u
+        for k in range(i):
+            u -= proj(w, Q[:, k])
+        Q[:, i] = normalize(u)
+        for j in range(i + 1):
+            R[j, i] = np.vdot(Q[:, j], cp[:, i])
+    return Q, R
 
 
+# -----------------------------------------------------------
+# THE MAIN METHOD.
+# -----------------------------------------------------------
 
 
+def main():
+    # Get input from the user.
+    n = int(input("Please enter the size of the matrix you would like to generate.\n"))
+    # Generate random matrix of correct dimensions
+    #print('Generating a random symmetric matrix of size {} x {}\n'.format(n, n))
+    b = np.random.random_integers(-100, 100, size=(n, n))
+    # Make a symmetric matrix out of the generated matrix.
+    A = (b + b.T) / 2
+    # Run Gram Schmidt on the matrix.
+    Q, R = qr_decomp(A)
+
+    print('The obtained Q was:\n {}\n'.format(Q))
+    print('The obtained R was:\n {}\n'.format(R))
 
 
+if __name__ == "__main__":
+    main()
